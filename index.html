@@ -3,253 +3,224 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dark Binary Studio</title>
+<title>Atlas Sparrow</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23E30613%22/></svg>">
 <style>
-  :root{
-    --bg: #0a0c10;
-    --bg-deep: #060709;
-    --bg-mid: #101722;
-    --bg-raised: #161d29;
-    --ink: #e6e9ee;
-    --ink-dim: #5c6570;
-    --accent: #7d9bc4;
-    --accent-dim: #4a5f7d;
-    --line: #1c2836;
-    --mono: 'IBM Plex Mono', 'SF Mono', Consolas, monospace;
-    --display: 'Fraunces', Georgia, serif;
+  :root {
+    --bg: #0A0A0A;
+    --dot: #F5F5F0;
+    --red: #E30613;
+    --grey: #767676;
+    --hairline: #2A2A2A;
   }
 
-  @font-face {
-    font-family: 'IBM Plex Mono';
-    src: local('IBM Plex Mono');
-  }
-
-  * { box-sizing: border-box; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
   html, body {
-    margin: 0;
-    padding: 0;
-    background: radial-gradient(ellipse 120% 80% at 50% 15%, var(--bg-mid) 0%, var(--bg) 45%, var(--bg-deep) 100%);
-    color: var(--ink);
     height: 100%;
-    overflow-x: hidden;
+    background: var(--bg);
+    overflow: hidden;
   }
 
   body {
-    font-family: var(--mono);
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    color: #FFFFFF;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  canvas#field {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .grid {
+    position: relative;
+    z-index: 2;
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    padding: 32px;
+    pointer-events: none;
+  }
+
+  main {
+    grid-column: 1 / span 8;
     display: flex;
-    align-items: center;
+    flex-direction: column;
     justify-content: center;
     min-height: 100vh;
-    position: relative;
-    padding: 24px;
-  }
-
-  /* faint ambient binary field */
-  .field {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    overflow: hidden;
-    pointer-events: none;
-    opacity: 0.28;
-  }
-  .field span {
-    position: absolute;
-    font-size: 11px;
-    color: var(--accent-dim);
-    font-family: var(--mono);
-    user-select: none;
-  }
-
-  .stage {
-    position: relative;
-    z-index: 1;
-    text-align: center;
-    max-width: 640px;
-    width: 100%;
-  }
-
-  .eyebrow {
-    font-size: 12px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--ink-dim);
-    margin: 0 0 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-  }
-
-  .eyebrow::before, .eyebrow::after {
-    content: '';
-    height: 1px;
-    width: 28px;
-    background: var(--line);
-  }
-
-  .dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--accent);
-    display: inline-block;
-    box-shadow: 0 0 8px var(--accent);
-    animation: pulse 2.6s ease-in-out infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.35; }
   }
 
   .wordmark {
-    font-family: var(--display);
-    font-weight: 600;
-    font-size: clamp(2.6rem, 8vw, 5rem);
-    line-height: 1.02;
+    font-weight: 700;
+    line-height: 0.92;
     letter-spacing: -0.01em;
-    margin: 0;
-    color: var(--ink);
-    position: relative;
+    font-size: clamp(3rem, 10vw, 8.5rem);
+    text-transform: uppercase;
   }
 
-  .wordmark .decode {
-    display: inline-block;
-  }
-
-  .wordmark em {
-    font-style: normal;
-    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dim) 60%, #2e3d52 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-
-  .tagline {
-    margin: 26px 0 44px;
-    font-size: 14px;
-    color: var(--ink-dim);
-    letter-spacing: 0.02em;
-    line-height: 1.7;
-  }
-
-  .status-row {
-    display: inline-flex;
+  .status-line {
+    display: flex;
     align-items: center;
-    gap: 14px;
-    padding: 12px 20px;
-    border: 1px solid var(--line);
-    border-radius: 3px;
-    background: var(--bg-raised);
-    font-size: 12px;
-    color: var(--ink-dim);
-    letter-spacing: 0.05em;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    margin-top: 24px;
   }
 
-  .status-row strong {
-    color: var(--ink);
-    font-weight: 500;
+  .status-line .swatch {
+    width: 8px;
+    height: 8px;
+    background: var(--red);
   }
 
-  .cursor {
-    display: inline-block;
-    width: 7px;
-    height: 14px;
-    background: var(--accent);
-    margin-left: 2px;
-    animation: blink 1s step-end infinite;
-    vertical-align: text-bottom;
+  .meta {
+    position: absolute;
+    font-size: 0.68rem;
+    font-family: 'Courier New', monospace;
+    color: var(--grey);
+    letter-spacing: 0.03em;
+    line-height: 1.6;
   }
 
-  @keyframes blink {
-    0%, 50% { opacity: 1; }
-    51%, 100% { opacity: 0; }
+  .meta.top-right {
+    top: 32px;
+    right: 32px;
+    text-align: right;
   }
 
-  footer {
-    position: fixed;
-    bottom: 24px;
-    left: 0;
-    right: 0;
-    text-align: center;
-    font-size: 11px;
-    color: var(--line);
-    letter-spacing: 0.08em;
-    z-index: 1;
+  .meta.bottom-left {
+    bottom: 32px;
+    left: 32px;
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .dot, .cursor { animation: none; }
+  .copyright {
+    position: absolute;
+    bottom: 14px;
+    left: 32px;
+    font-size: 0.68rem;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 0.02em;
+  }
+
+  @media (max-width: 640px) {
+    .grid { padding: 20px; }
+    main { grid-column: 1 / -1; }
+    .meta { display: none; }
+    .copyright { left: 20px; bottom: 12px; }
   }
 </style>
 </head>
 <body>
 
-  <div class="field" id="field"></div>
+<canvas id="field"></canvas>
 
-  <div class="stage">
-    <p class="eyebrow"><span class="dot"></span> Work in Progress</p>
-
-    <h1 class="wordmark"><span class="decode" id="decode">Dark Binary</span></h1>
-
-    <div class="status-row">
-      <span>check back soon<span class="cursor"></span></span>
+<div class="grid">
+  <main>
+    <div class="wordmark">
+      <div>ATLAS</div>
+      <div>SPARROW</div>
     </div>
-  </div>
+    <div class="status-line"><span class="swatch"></span>WORK IN PROGRESS</div>
+  </main>
+</div>
 
-  <footer>&copy; <span id="year"></span> Dark Binary Studio</footer>
+<div class="meta top-right" id="metaTop"></div>
+<div class="meta bottom-left" id="metaBottom"></div>
+<div class="copyright">© 2026 Atlas Sparrow</div>
 
 <script>
-  document.getElementById('year').textContent = new Date().getFullYear();
+(function () {
+  var canvas = document.getElementById('field');
+  var ctx = canvas.getContext('2d');
+  var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // ambient binary field
-  const field = document.getElementById('field');
-  const cols = Math.floor(window.innerWidth / 60);
-  const rows = Math.floor(window.innerHeight / 60);
-  for (let i = 0; i < cols * rows * 0.22; i++) {
-    const s = document.createElement('span');
-    s.textContent = Math.random() > 0.5 ? '1' : '0';
-    s.style.left = Math.random() * 100 + '%';
-    s.style.top = Math.random() * 100 + '%';
-    field.appendChild(s);
+  var W, H, dpr;
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  var COLS = 90;
+  var ROWS = 46;
+  var tilt = 0.62;      // isometric-ish tilt
+  var rot = -0.5;        // rotation of the field for a diagonal sweep
+
+  function noise(x, y, t) {
+    return (
+      Math.sin(x * 0.18 + t * 0.4) * 0.5 +
+      Math.sin(y * 0.24 - t * 0.3) * 0.35 +
+      Math.sin((x + y) * 0.11 + t * 0.2) * 0.4 +
+      Math.sin(x * 0.05 - y * 0.07 + t * 0.15) * 0.6
+    );
   }
 
-  // decode-in effect on wordmark, respects reduced motion
-  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const target = document.getElementById('decode');
-  const finalText = target.textContent;
+  function render(t) {
+    ctx.clearRect(0, 0, W, H);
 
-  if (!prefersReduced) {
-    const chars = '01';
-    let frame = 0;
-    const totalFrames = 18;
-    target.style.opacity = '1';
+    var spacingX = W / COLS * 1.6;
+    var spacingZ = H / ROWS * 1.9;
+    var originX = W * 0.62;
+    var originY = H * 0.86;
+    var cosR = Math.cos(rot), sinR = Math.sin(rot);
 
-    function scramble() {
-      if (frame >= totalFrames) {
-        target.innerHTML = finalText.replace('Dark', '<em>Dark</em>');
-        return;
+    for (var row = 0; row < ROWS; row++) {
+      for (var col = 0; col < COLS; col++) {
+        var gx = (col - COLS / 2) * spacingX * 0.32;
+        var gz = row * spacingZ * 0.32;
+
+        var h = noise(col, row, t) * 46;
+
+        // rotate on the ground plane for a diagonal composition
+        var rx = gx * cosR - gz * sinR;
+        var rz = gx * sinR + gz * cosR;
+
+        var screenX = originX + rx;
+        var screenY = originY - rz * tilt - h;
+
+        if (screenX < -20 || screenX > W + 20 || screenY < -20 || screenY > H + 20) continue;
+
+        var depthFade = 1 - row / ROWS;
+        var heightGlow = Math.max(0, h / 46);
+        var alpha = (0.06 + depthFade * 0.5) * (0.5 + heightGlow * 0.5);
+        var size = 0.6 + heightGlow * 1.6 + depthFade * 0.6;
+
+        ctx.fillStyle = 'rgba(245,245,240,' + alpha.toFixed(3) + ')';
+        ctx.beginPath();
+        ctx.arc(screenX, screenY, size, 0, Math.PI * 2);
+        ctx.fill();
       }
-      let out = '';
-      const revealCount = Math.floor((frame / totalFrames) * finalText.length);
-      for (let i = 0; i < finalText.length; i++) {
-        if (finalText[i] === ' ') { out += ' '; continue; }
-        if (i < revealCount) {
-          out += finalText[i];
-        } else {
-          out += chars[Math.floor(Math.random() * chars.length)];
-        }
-      }
-      target.textContent = out;
-      frame++;
-      requestAnimationFrame(() => setTimeout(scramble, 35));
     }
-    scramble();
-  } else {
-    target.innerHTML = finalText.replace('Dark', '<em>Dark</em>');
   }
+
+  var startTime = performance.now();
+  function loop(now) {
+    var t = (now - startTime) / 1000;
+    render(prefersReducedMotion ? 0 : t);
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  // Ambient technical meta labels — decorative readout, no real data
+  function hex(n) { return Math.floor(Math.random() * n).toString(16).toUpperCase().padStart(4, '0'); }
+  var top = document.getElementById('metaTop');
+  var bottom = document.getElementById('metaBottom');
+  top.innerHTML = 'FIELD.SYNC — 0x' + hex(65536) + '<br>NODES ' + (90 * 46) + ' / ACTIVE';
+  bottom.innerHTML = 'REV 0x' + hex(4096) + '<br>ATLAS-SPARROW.STUDIO';
+})();
 </script>
 
 </body>
